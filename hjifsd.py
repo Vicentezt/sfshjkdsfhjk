@@ -1,100 +1,96 @@
-#Funciones
-MAX_RESERVAS = 20
-def reservar_zapatillas(reservas):
-    """
-    Registra una nueva reserva si no se supera el stock máximo,
-    el nombre no está repetido y se ingresa la clave correcta.
-    reservas: dict nombre -> [pares, vip]
-    """
+def comprar_entrada(stock, compradores):
     try:
-        print("\n-- Reservar Zapatillas --")
-        if len(reservas) >= MAX_RESERVAS:
-            print("Lo sentimos, no quedan reservas disponibles.")
-            return
-
+        print("\n-- Comprar Entrada --")
         nombre = input("Nombre del comprador: ").strip()
-        if nombre in reservas:
-            print("Error: el nombre ya existe en las reservas.")
-            return
+        if nombre in compradores:
+            print("Error: el nombre ya existe.")
+            return stock
 
-        clave = input("Digite la palabra secreta para confirmar la reserva: ").strip()
-        if clave != "EstoyEnListaDeReserva":
-            print("Error: palabra clave incorrecta. Reserva no realizada.")
-            return
-
-        # Reserva registrada con 1 par, VIP por defecto False
-        reservas[nombre] = [1, False]
-        print(f"Reserva realizada exitosamente para {nombre}.")
-    except Exception as error:
-        print("Error con la reserva ", error)
-
-
-def buscar_zapatillas(reservas):
-    """
-    Busca una reserva por nombre y ofrece opción VIP para 2 pares.
-    """
-    try:
-        print("\n-- Buscar Zapatillas Reservadas --")
-        nombre = input("Nombre del comprador a buscar: ").strip()
-        if nombre not in reservas:
-            print("No se encontró ninguna reserva con ese nombre.")
-            return
-
-        pares, vip = reservas[nombre]
-        estado = 'VIP' if vip else 'estándar'
-        print(f"Reserva encontrada: {nombre} - {pares} par(es) ({estado}).")
-
-        if not vip:
-            opcion = input("¿Desea pagar adicional para VIP y reservar 2 pares? (s/n): ").strip().lower()
-            if opcion == 's':
-                reservas[nombre] = [2, True]
-                print(f"Reserva actualizada a VIP. Ahora {nombre} tiene 2 pares reservados.")
-            else:
-                print("Manteniendo reserva actual.")
-    except Exception as error:
-        print("Error con buscar la reserva ", error)
-
-
-def cancelar_reserva(reservas):
-    """
-    Cancela la reserva si existe.
-    """
-    try:
-        print("\n-- Cancelar Reserva --")
-        nombre = input("Nombre del comprador cuya reserva desea cancelar: ").strip()
-        if nombre in reservas:
-            del reservas[nombre]
-            print(f"La reserva de {nombre} ha sido cancelada.")
-        else:
-            print("No se encontró ninguna reserva con ese nombre.")
-    except Exception as error:
-        print("Error con cancelar la reserva ", error)
-
-
-
-reservas = {}  # dict: nombre -> [pares, vip]
-while True:
-    try:
-        print("\nTOTEM AUTOATENCIÓN RESERVA STRIKE")
-        print("1.- Reservar zapatillas")
-        print("2.- Buscar zapatillas reservadas")
-        print("3.- Cancelar reserva de zapatillas")
-        print("4.- Salir")
-        opcion = input("Seleccione una opción (1-4): ").strip()
+        print("Seleccione función:")
+        print("1. Movimiento Origen con los Tripulantes Shamanes (50 entradas)")
+        print("2. Movimiento Origen con Sonrisa MC (60 entradas)")
+        opcion = input("Función (1 ó 2): ").strip()
+        if opcion not in ('1', '2'):
+            print("Error: opción de función inválida.")
+            return stock
 
         if opcion == '1':
-            reservar_zapatillas(reservas)
+            if stock['f1'] <= 0:
+                print("Error: no hay stock disponible para la función 1.")
+                return stock
+            stock['f1'] -= 1
+        else:
+            if stock['f2'] <= 0:
+                print("Error: no hay stock disponible para la función 2.")
+                return stock
+            stock['f2'] -= 1
+        compradores[nombre] = opcion
+        print(f"Entrada registrada en función {opcion}! Stock restantes: \n"
+            f"  Función 1: {stock['f1']} \n  Función 2: {stock['f2']}")
+        return stock
+    except Exception as error:
+        print("Error con el nombre del comprador ", error)
+
+
+def cambiar_show(stock, compradores):
+    try:
+        print("\n-- Cambiar Show --")
+        nombre = input("Nombre del comprador: ").strip()
+        if nombre not in compradores:
+            print("Error: comprador no encontrado.")
+            return stock
+
+        actual = compradores[nombre]
+        nueva = '2' if actual == '1' else '1'
+        if stock[f'f{nueva}'] <= 0:
+            print(f"Error: no hay stock disponible para la función {nueva}.")
+            return stock
+
+        confirm = input(f"Cambiar de función {actual} a {nueva}? (S/N): ").strip().upper()
+        if confirm != 'S':
+            print("Cambio cancelado.")
+            return stock
+
+        # Ajustar stock
+        stock[f'f{actual}'] += 1
+        stock[f'f{nueva}'] -= 1
+        compradores[nombre] = nueva
+        print(f"Cambio exitoso. Ahora está en función {nueva}.")
+        return stock
+    except Exception as error:
+        print("Error con el nombre del comprador ", error)
+
+
+def mostrar_totales(stock, compradores):
+    print("\n-- Totales de Entradas --")
+    vendidos_f1 = 50 - stock['f1']
+    vendidos_f2 = 60 - stock['f2']
+    print(f"Función 1: Disponibles {stock['f1']}, Vendidas {vendidos_f1}")
+    print(f"Función 2: Disponibles {stock['f2']}, Vendidas {vendidos_f2}")
+
+
+
+stock = {'f1': 50, 'f2': 60}
+compradores = {}
+
+while True:
+    try:
+        print("\nMENU PRINCIPAL CONCIERTO MOVIMIENTO ORIGEN")
+        print("1.- Comprar entrada.")
+        print("2.- Cambiar show.")
+        print("3.- Mostrar stock.")
+        print("4.- Salir.")
+        opcion = input("Seleccione una opción: ").strip()
+        if opcion == '1':
+            stock = comprar_entrada(stock, compradores)
         elif opcion == '2':
-            buscar_zapatillas(reservas)
+            stock = cambiar_show(stock, compradores)
         elif opcion == '3':
-            cancelar_reserva(reservas)
+            mostrar_totales(stock, compradores)
         elif opcion == '4':
             print("\nPrograma terminado...")
             break
         else:
-                print("Debe ingresar una opción válida!!")
+            print("Debe ingresar una opción válida!!")
     except Exception as error:
-            print("Error con el menú principal ", error)
-
-
-
+            print("Error con el nombre del comprador ", error)
